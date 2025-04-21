@@ -30,14 +30,15 @@ COPY . .
 # Set NODE_ENV to production for the build step
 ENV NODE_ENV=production
 
+# Ensure prisma generate runs if needed by the build process
+RUN pnpm --filter inbox-zero-ai exec -- prisma generate
+
 # Provide dummy DB URLs for build-time Prisma schema loading
 ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
 ENV DIRECT_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
 
-# Build the specific application (inbox-zero-ai)
-# Now run prisma generate explicitly AFTER code is copied
-RUN pnpm --filter inbox-zero-ai exec -- prisma generate
-RUN pnpm --filter inbox-zero-ai run build
+# Build the Next.js application only (skip prisma migrate deploy during build)
+RUN pnpm --filter inbox-zero-ai exec -- next build
 
 # Prune development dependencies after build
 RUN pnpm prune --prod
