@@ -25,38 +25,21 @@ COPY packages/tsconfig/package.json packages/tsconfig/
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy the rest of the application code
+# Important: Copy .env.build BEFORE running build commands
 COPY . .
 
 # Set NODE_ENV to production for the build step
 ENV NODE_ENV=production
 
+# Copy the dummy .env file for the build process
+# This file contains necessary env vars with dummy values to pass build checks
+COPY apps/web/.env.build .env
+
 # Ensure prisma generate runs if needed by the build process
 RUN pnpm --filter inbox-zero-ai exec -- prisma generate
 
-# Provide dummy DB URLs for build-time Prisma schema loading
-ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
-ENV DIRECT_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
-# Provide dummy values for other required build-time ENV VARS
-ENV NEXTAUTH_SECRET="dummy_secret_for_build_only"
-ENV GOOGLE_CLIENT_ID="dummy_id_for_build_only"
-ENV GOOGLE_CLIENT_SECRET="dummy_secret_for_build_only"
-ENV GOOGLE_ENCRYPT_SECRET="dummy_encrypt_secret_for_build_only"
-ENV GOOGLE_ENCRYPT_SALT="dummy_encrypt_salt_for_build_only"
-ENV GOOGLE_PUBSUB_TOPIC_NAME="dummy_topic_for_build_only"
-ENV INTERNAL_API_KEY="dummy_apikey_for_build_only"
-
-# Provide dummy Redis/QStash vars needed for build analysis
-ENV UPSTASH_REDIS_URL="http://dummy-redis-for-build:6379"
-ENV UPSTASH_REDIS_TOKEN="dummy_redis_token_for_build"
-ENV QSTASH_CURRENT_SIGNING_KEY="dummy_qstash_curr_key_for_build"
-ENV QSTASH_NEXT_SIGNING_KEY="dummy_qstash_next_key_for_build"
-ENV QSTASH_TOKEN="dummy_qstash_token_for_build"
-
-# Provide dummy Sanity vars needed for build analysis
-ENV NEXT_PUBLIC_SANITY_PROJECT_ID="dummy_sanity_project_id_for_build"
-ENV NEXT_PUBLIC_SANITY_DATASET="dummy_sanity_dataset_for_build"
-
 # Build the Next.js application only (skip prisma migrate deploy during build)
+# It should pick up variables from the copied .env file
 RUN pnpm --filter inbox-zero-ai exec -- next build
 
 # Prune development dependencies after build
