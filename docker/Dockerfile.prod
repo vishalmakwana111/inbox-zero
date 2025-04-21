@@ -52,6 +52,10 @@ ENV QSTASH_CURRENT_SIGNING_KEY="dummy_qstash_curr_key_for_build"
 ENV QSTASH_NEXT_SIGNING_KEY="dummy_qstash_next_key_for_build"
 ENV QSTASH_TOKEN="dummy_qstash_token_for_build"
 
+# Provide dummy Sanity vars needed for build analysis
+ENV NEXT_PUBLIC_SANITY_PROJECT_ID="dummy_sanity_project_id_for_build"
+ENV NEXT_PUBLIC_SANITY_DATASET="dummy_sanity_dataset_for_build"
+
 # Build the Next.js application only (skip prisma migrate deploy during build)
 RUN pnpm --filter inbox-zero-ai exec -- next build
 
