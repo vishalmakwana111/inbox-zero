@@ -55,8 +55,8 @@ ENV QSTASH_CURRENT_SIGNING_KEY="dummy_qstash_curr_key_for_build"
 ENV QSTASH_NEXT_SIGNING_KEY="dummy_qstash_next_key_for_build"
 
 # Provide dummy Sanity vars needed for build analysis
-ENV NEXT_PUBLIC_SANITY_PROJECT_ID="dummy_sanity_project_id_for_build"
-ENV NEXT_PUBLIC_SANITY_DATASET="dummy_sanity_dataset_for_build"
+ENV NEXT_PUBLIC_SANITY_PROJECT_ID="dummy-sanity-project-id-for-build"
+ENV NEXT_PUBLIC_SANITY_DATASET="dummy-sanity-dataset-for-build"
 
 # Ensure prisma generate runs if needed by the build process
 RUN pnpm --filter inbox-zero-ai exec -- prisma generate
