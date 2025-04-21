@@ -30,6 +30,10 @@ COPY . .
 # Set NODE_ENV to production for the build step
 ENV NODE_ENV=production
 
+# Provide dummy DB URLs for build-time Prisma schema loading
+ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
+ENV DIRECT_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
+
 # Build the specific application (inbox-zero-ai)
 # Now run prisma generate explicitly AFTER code is copied
 RUN pnpm --filter inbox-zero-ai exec -- prisma generate
