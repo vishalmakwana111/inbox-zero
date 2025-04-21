@@ -21,8 +21,8 @@ COPY packages/tinybird/package.json packages/tinybird/
 COPY packages/tinybird-ai-analytics/package.json packages/tinybird-ai-analytics/
 COPY packages/tsconfig/package.json packages/tsconfig/
 
-# Install ALL dependencies (including devDeps needed for build)
-RUN pnpm install --frozen-lockfile
+# Install ALL dependencies (ignore scripts initially)
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy the rest of the application code
 COPY . .
@@ -31,7 +31,7 @@ COPY . .
 ENV NODE_ENV=production
 
 # Build the specific application (inbox-zero-ai)
-# Ensure prisma generate runs if needed by the build process
+# Now run prisma generate explicitly AFTER code is copied
 RUN pnpm --filter inbox-zero-ai exec -- prisma generate
 RUN pnpm --filter inbox-zero-ai run build
 
