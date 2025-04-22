@@ -67,5 +67,9 @@ export default async function Page(props: Props) {
   const params = await props.params;
   const post = await sanityFetch<PostType>({ query: postQuery, params });
 
+  if (!post) {
+    return <div>Blog post content unavailable.</div>;
+  }
+
   return <Post post={post} />;
 }
