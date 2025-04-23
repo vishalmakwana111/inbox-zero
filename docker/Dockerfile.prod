@@ -54,7 +54,7 @@ ENV QSTASH_TOKEN="dummy_qstash_token_for_build"
 ENV QSTASH_CURRENT_SIGNING_KEY="dummy_qstash_curr_key_for_build"
 ENV QSTASH_NEXT_SIGNING_KEY="dummy_qstash_next_key_for_build"
 
-# Provide dummy Sanity vars needed for build analysis
+# Provide dummy Sanity vars needed for build (Matching the check in generateStaticParams)
 ENV NEXT_PUBLIC_SANITY_PROJECT_ID="dummy-sanity-project-id-for-build"
 ENV NEXT_PUBLIC_SANITY_DATASET="dummy-sanity-dataset-for-build"
 
