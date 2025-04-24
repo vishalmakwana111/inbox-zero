@@ -61,10 +61,6 @@ ENV NEXT_PUBLIC_SANITY_DATASET="dummy-sanity-dataset-for-build"
 # Ensure prisma generate runs if needed by the build process
 RUN pnpm --filter inbox-zero-ai exec -- prisma generate
 
-# Provide dummy Sanity vars needed for build (Corrected Project ID and Dataset)
-ENV NEXT_PUBLIC_SANITY_PROJECT_ID="dummy-sanity-id-for-build"
-ENV NEXT_PUBLIC_SANITY_DATASET="dummy-sanity-dataset-for-build"
-
 # Build the Next.js application only (skip prisma migrate deploy during build)
 RUN pnpm --filter inbox-zero-ai exec -- next build
 
