@@ -65,16 +65,16 @@ RUN pnpm --filter inbox-zero-ai exec -- prisma generate
 RUN pnpm --filter inbox-zero-ai exec -- next build
 
 # Prune development dependencies after build
-RUN pnpm prune --prod
+# RUN pnpm prune --prod # <-- Commenting out as it removes required next files
 
 # Re-ensure production dependencies (including next) are present after pruning
-RUN pnpm install --prod --filter inbox-zero-ai
+# RUN pnpm install --prod --filter inbox-zero-ai # <-- No longer needed if prune is removed
 
 # --- Debug Builder Stage After Reinstall ---
-RUN echo "\
-Listing /app/node_modules/next/dist/bin/ (in Builder Stage After Reinstall):"
-RUN ls -la /app/node_modules/next/dist/bin/ || echo "/app/node_modules/next/dist/bin/ not found (in Builder Stage After Reinstall)"
-RUN echo "--- End Debug Builder Stage ---"
+# RUN echo "\
+# Listing /app/node_modules/next/dist/bin/ (in Builder Stage After Reinstall):"
+# RUN ls -la /app/node_modules/next/dist/bin/ || echo "/app/node_modules/next/dist/bin/ not found (in Builder Stage After Reinstall)"
+# RUN echo "--- End Debug Builder Stage ---"
 
 # ---
 
