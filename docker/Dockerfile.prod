@@ -97,6 +97,25 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 # Copy package.json (needed by Next.js server)
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./apps/web/package.json
 
+# --- Debugging Runner Stage ---
+RUN echo "--- Debugging Runner Stage Start ---"
+RUN echo "WORKDIR: $(pwd)"
+RUN echo "PATH: $PATH"
+RUN echo "\
+Listing /app:"
+RUN ls -la /app
+RUN echo "\
+Listing /app/node_modules/.bin:"
+RUN ls -la /app/node_modules/.bin || echo "/app/node_modules/.bin not found or error listing"
+RUN echo "\
+Checking pnpm location:"
+RUN which pnpm || echo "pnpm not found in PATH"
+RUN echo "\
+Checking node location:"
+RUN which node || echo "node not found in PATH"
+RUN echo "--- Debugging Runner Stage End ---"
+# --- End Debugging ---
+
 # Switch to non-root user
 USER nextjs
 
@@ -105,4 +124,4 @@ EXPOSE 3000
 
 # Set the default command to start the production server
 # Change directory to the app's context before starting
-CMD node node_modules/next/dist/server/next-server.js apps/web 
+CMD PATH=$PATH:./node_modules/.bin pnpm --filter inbox-zero-ai start 
