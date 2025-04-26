@@ -18,11 +18,12 @@ COPY packages/tinybird/package.json packages/tinybird/
 COPY packages/tinybird-ai-analytics/package.json packages/tinybird-ai-analytics/
 COPY packages/tsconfig/package.json packages/tsconfig/
 
-# Install ALL dependencies (including dev, no pruning)
-RUN pnpm install --frozen-lockfile
-
-# Copy the rest of the application code
+# Copy the rest of the application code FIRST
 COPY . .
+
+# Install ALL dependencies (including dev, no pruning)
+# This will now run postinstall scripts *after* source code is copied
+RUN pnpm install --frozen-lockfile
 
 # Set NODE_ENV for build and runtime
 ENV NODE_ENV=production
