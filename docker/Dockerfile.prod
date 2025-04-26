@@ -113,6 +113,9 @@ RUN which pnpm || echo "pnpm not found in PATH"
 RUN echo "\
 Checking node location:"
 RUN which node || echo "node not found in PATH"
+RUN echo "\
+Listing /app/node_modules/next/dist/bin/:"
+RUN ls -la /app/node_modules/next/dist/bin/ || echo "/app/node_modules/next/dist/bin/ not found or error listing"
 RUN echo "--- Debugging Runner Stage End ---"
 # --- End Debugging ---
 
@@ -124,4 +127,4 @@ EXPOSE 3000
 
 # Set the default command to start the production server
 # Change directory to the app's context before starting
-CMD PATH=$PATH:./node_modules/.bin pnpm --filter inbox-zero-ai start 
+CMD node node_modules/next/dist/bin/next start apps/web 
