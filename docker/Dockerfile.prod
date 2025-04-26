@@ -105,4 +105,4 @@ EXPOSE 3000
 
 # Set the default command to start the production server
 # Change directory to the app's context before starting
-CMD node_modules/.bin/next start apps/web 
+CMD node node_modules/next/dist/server/next-server.js apps/web 
