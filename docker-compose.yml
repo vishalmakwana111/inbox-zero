@@ -41,7 +41,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: ./docker/Dockerfile.web
-    image: ghcr.io/vishalmakwana111/inbox-zero:0.0.1-test # Use pre-built image
+    image: ghcr.io/vishalmakwana111/inbox-zero:latest # Use pre-built image (updated tag)
     env_file:
       - ./apps/web/.env
     depends_on:
