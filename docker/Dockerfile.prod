@@ -1,16 +1,13 @@
-# Stage 1: Build the application
-FROM node:22-alpine AS builder
+FROM node:22-alpine
 
-# Set working directory
 WORKDIR /app
 
-# Install necessary tools (including git for husky prepare script, if needed)
-RUN apk add --no-cache openssl git
+# Install necessary tools
+RUN apk add --no-cache openssl
 RUN npm install -g pnpm
 
-# Copy package manager files
+# Copy all package manager files first for caching
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
-# Copy package.json files for workspace projects
 COPY apps/web/package.json apps/web/
 COPY apps/unsubscriber/package.json apps/unsubscriber/
 COPY apps/mcp-server/package.json apps/mcp-server/
@@ -21,20 +18,18 @@ COPY packages/tinybird/package.json packages/tinybird/
 COPY packages/tinybird-ai-analytics/package.json packages/tinybird-ai-analytics/
 COPY packages/tsconfig/package.json packages/tsconfig/
 
-# Install ALL dependencies (ignore scripts initially)
-RUN pnpm install --frozen-lockfile --ignore-scripts
+# Install ALL dependencies (including dev, no pruning)
+RUN pnpm install --frozen-lockfile
 
 # Copy the rest of the application code
 COPY . .
 
-# Set NODE_ENV to production for the build step
+# Set NODE_ENV for build and runtime
 ENV NODE_ENV=production
 
-# Provide dummy DB URLs for build-time Prisma schema loading
+# Provide dummy build-time ENV VARS (Still needed for build)
 ENV DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
 ENV DIRECT_URL="postgresql://dummy:dummy@dummy:5432/dummy?schema=public"
-
-# Provide dummy values for other required build-time ENV VARS
 ENV NEXTAUTH_SECRET="dummy_secret_for_build_only"
 ENV NEXTAUTH_URL="http://localhost:3000"
 ENV GOOGLE_CLIENT_ID="dummy_id_for_build_only"
@@ -45,95 +40,34 @@ ENV GOOGLE_PUBSUB_TOPIC_NAME="dummy_topic_for_build_only"
 ENV GOOGLE_PUBSUB_VERIFICATION_TOKEN="dummy_pubsub_token_for_build"
 ENV INTERNAL_API_KEY="dummy_apikey_for_build_only"
 ENV API_KEY_SALT="dummy_salt_for_build_only"
-
-# Provide dummy Redis/QStash vars needed for build analysis
 ENV UPSTASH_REDIS_URL="http://dummy-redis-for-build:6379"
 ENV UPSTASH_REDIS_TOKEN="dummy_redis_token_for_build"
 ENV REDIS_URL="redis://dummy:dummy@dummy:6379"
 ENV QSTASH_TOKEN="dummy_qstash_token_for_build"
 ENV QSTASH_CURRENT_SIGNING_KEY="dummy_qstash_curr_key_for_build"
 ENV QSTASH_NEXT_SIGNING_KEY="dummy_qstash_next_key_for_build"
-
-# Provide dummy Sanity vars needed for build (Matching the check in generateStaticParams)
 ENV NEXT_PUBLIC_SANITY_PROJECT_ID="dummy-sanity-project-id-for-build"
 ENV NEXT_PUBLIC_SANITY_DATASET="dummy-sanity-dataset-for-build"
 
-# Ensure prisma generate runs if needed by the build process
+# Ensure prisma generate runs
 RUN pnpm --filter inbox-zero-ai exec -- prisma generate
 
-# Build the Next.js application only (skip prisma migrate deploy during build)
+# Build the Next.js application
 RUN pnpm --filter inbox-zero-ai exec -- next build
 
-# Prune development dependencies after build
-# RUN pnpm prune --prod # <-- Commenting out as it removes required next files
-
-# Re-ensure production dependencies (including next) are present after pruning
-# RUN pnpm install --prod --filter inbox-zero-ai # <-- No longer needed if prune is removed
-
-# --- Debug Builder Stage After Reinstall ---
-# RUN echo "\
-# Listing /app/node_modules/next/dist/bin/ (in Builder Stage After Reinstall):"
-# RUN ls -la /app/node_modules/next/dist/bin/ || echo "/app/node_modules/next/dist/bin/ not found (in Builder Stage After Reinstall)"
-# RUN echo "--- End Debug Builder Stage ---"
-
-# ---
-
-# Stage 2: Production image
-FROM node:22-alpine AS runner
-
-WORKDIR /app
-
-# Set NODE_ENV to production for runtime
-ENV NODE_ENV=production
-
-# Install pnpm globally for the CMD instruction
-RUN npm install -g pnpm
-
-# Install necessary tools (optional, only if runtime needs them)
-RUN apk add --no-cache openssl
-
 # Create non-root user for security
+# Running as root during build, create user for runtime
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files from the builder stage
-# Copy production node_modules (pruned in builder stage)
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-# Copy built Next.js app
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./apps/web/.next
-# Copy public assets
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
-# Copy package.json (needed by Next.js server)
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./apps/web/package.json
+# No need to copy files, already present
 
-# --- Debugging Runner Stage ---
-RUN echo "--- Debugging Runner Stage Start ---"
-RUN echo "WORKDIR: $(pwd)"
-RUN echo "PATH: $PATH"
-RUN echo "\
-Listing /app:"
-RUN ls -la /app
-RUN echo "\
-Listing /app/node_modules/.bin:"
-RUN ls -la /app/node_modules/.bin || echo "/app/node_modules/.bin not found or error listing"
-RUN echo "\
-Checking pnpm location:"
-RUN which pnpm || echo "pnpm not found in PATH"
-RUN echo "\
-Checking node location:"
-RUN which node || echo "node not found in PATH"
-RUN echo "\
-Listing /app/node_modules/next/dist/bin/:"
-RUN ls -la /app/node_modules/next/dist/bin/ || echo "/app/node_modules/next/dist/bin/ not found or error listing"
-RUN echo "--- Debugging Runner Stage End ---"
-# --- End Debugging ---
-
-# Switch to non-root user
+# Switch to non-root user for runtime
 USER nextjs
 
 # Expose port 3000
 EXPOSE 3000
 
 # Set the default command to start the production server
-# Change directory to the app's context before starting
-CMD node node_modules/next/dist/bin/next start apps/web 
+# Use the simpler pnpm command, should work now as pnpm & next are installed
+CMD pnpm --filter inbox-zero-ai start 
