@@ -77,6 +77,9 @@ WORKDIR /app
 # Set NODE_ENV to production for runtime
 ENV NODE_ENV=production
 
+# Install pnpm globally for the CMD instruction
+RUN npm install -g pnpm
+
 # Install necessary tools (optional, only if runtime needs them)
 RUN apk add --no-cache openssl
 
